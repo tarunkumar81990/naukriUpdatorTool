@@ -30,6 +30,13 @@ jobs:
 
       - name: Run Runner main method
         run: |
-          echo "Using USERNAME from secrets (hidden in logs)"
+          echo "Running Runner..."
           mvn -q exec:java -Dexec.mainClass="updator.Runner"
         working-directory: ./NaukriUpdater
+
+      - name: Upload screenshots
+        if: always()  # ensures screenshots are uploaded even if tests fail
+        uses: actions/upload-artifact@v3
+        with:
+          name: screenshots
+          path: ./NaukriUpdater/screenshots/*.png
