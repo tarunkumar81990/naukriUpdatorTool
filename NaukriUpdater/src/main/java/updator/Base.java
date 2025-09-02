@@ -2,10 +2,14 @@ package updator;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.Properties;
 
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -71,6 +75,7 @@ public class Base {
 				.equals("complete"));
 		wait.until(ExpectedConditions.visibilityOf(element));
 		element.clear();
+		takeScreenshot(driver);
 		element.sendKeys(value);
 
 	}
@@ -81,6 +86,7 @@ public class Base {
 		wait.until(webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState")
 				.equals("complete"));
 		wait.until(ExpectedConditions.elementToBeClickable(element));
+		takeScreenshot(driver);
 		((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
 
 	}
@@ -92,7 +98,7 @@ public class Base {
 		wait.until(webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState")
 				.equals("complete"));
 		wait.until(ExpectedConditions.elementToBeClickable(element));
-		wait.until(ExpectedConditions.elementToBeClickable(element));
+		takeScreenshot(driver);
 		text = element.getText();
 		return text;
 
@@ -103,6 +109,23 @@ public class Base {
 		js.executeScript("arguments[0].scrollIntoView(true);", element);
 
 	}
+    public static String takeScreenshot(WebDriver driver) {
+    	int screenshotCount = 0;
+        String filename = "screenShot" + "_" + System.currentTimeMillis() + "_" + (screenshotCount++) + ".png";
+        File folder = new File("screenshots");
+        if (!folder.exists()) folder.mkdirs();
+        File destFile = new File(folder, filename);
+        
+        try {
+            File srcFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+            Files.copy(srcFile.toPath(), destFile.toPath());
+            System.out.println("Screenshot saved: " + destFile.getAbsolutePath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return destFile.getAbsolutePath();
+    }
 
 	public void tearDown() {
 		driver.close();
