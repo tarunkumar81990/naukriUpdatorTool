@@ -52,6 +52,8 @@ public class Updator extends Base {
 		if (password == null || password.isEmpty()) {
 			password = System.getenv("PASSWORD"); // mapped from APP_PASSWORD
 		}
+		System.out.println(userName);
+		System.out.println(password);
 		clickElement(btn_mainLogin);
 		enterValue(userName, inpt_userName);
 		enterValue(password, inpt_password);

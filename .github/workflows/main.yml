@@ -2,10 +2,10 @@ name: Naukri Updater Runner
 
 on:
   schedule:
-    # Every 30 mins from 03:30 UTC to 15:30 UTC (i.e. 9 AM – 9 PM IST)
+    # Every 30 minutes between 03:30–15:30 UTC (9 AM–9 PM IST)
     - cron: "30 3-15/1 * * *"
     - cron: "0 4-15/1 * * *"
-  workflow_dispatch:  # manual trigger enabled
+  workflow_dispatch: # allows manual triggering
 
 jobs:
   run-runner:
@@ -21,10 +21,22 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Build with Maven
+        run: mvn -q clean install
+        working-directory: ./NaukriUpdater
 
       - name: Run Runner main method
         run: |
-          echo "Using USERNAME from secrets (hidden in logs)"
-          mvn -q compile exec:java -Dexec.mainClass="your.package.Runner"
+          echo "Running Runner..."
+          mvn -q exec:java -Dexec.mainClass="updator.Runner"
+        working-directory: ./NaukriUpdater
+
+      - name: Upload screenshots
+        if: always()  # ensures screenshots are uploaded even if tests fail
+        uses: actions/upload-artifact@v3
+        with:
+          name: screenshots
+          path: ./NaukriUpdater/screenshots/*.png
