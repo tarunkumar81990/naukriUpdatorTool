@@ -1,10 +1,10 @@
 name: Naukri Updater Runner
 
 on:
-  schedule:
+ # schedule:
     # Every 30 minutes between 03:30–15:30 UTC (9 AM–9 PM IST)
-    - cron: "30 3-15/1 * * *"
-    - cron: "0 4-15/1 * * *"
+    #- cron: "30 3-15/1 * * *"
+   # - cron: "0 4-15/1 * * *"
   workflow_dispatch: # allows manual triggering
 
 jobs:
