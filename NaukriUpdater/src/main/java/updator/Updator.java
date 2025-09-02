@@ -53,6 +53,13 @@ public void loginToNaukri() {
 	try {
 		String userName=prop.getProperty("username");
 		String password=prop.getProperty("password");
+		if (userName == null || userName.isEmpty()) {
+			userName = System.getenv("USERNAME");  // mapped from APP_USERNAME
+		}
+		if (password == null || password.isEmpty()) {
+		    password = System.getenv("PASSWORD");  // mapped from APP_PASSWORD
+		}
+		clickElement(btn_mainLogin);
 		enterValue(userName,inpt_userName);
 		enterValue(password,inpt_password);
 
@@ -73,7 +80,7 @@ public void updateName() {
 		clickElement(link_profileImage);
 		clickElement(link_updateProfile);
 		String existingName=getText(txt_existingName);
-		String newName=existingName+" tarun";
+		String newName=existingName+" ";
 		clickElement(icon_edit);
 		enterValue(newName, inpt_profileName);
 		scrollToElement(btn_save);
@@ -83,6 +90,7 @@ public void updateName() {
 		enterValue(existingName, inpt_profileName);
 		scrollToElement(btn_save);
 		clickElement(btn_save);
+		System.out.println("Naukri updated successfully");
 	} catch (InterruptedException e) {
 		e.printStackTrace();
 	}
