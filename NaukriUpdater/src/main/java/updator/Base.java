@@ -44,7 +44,7 @@ public class Base {
 
 			} else if (browser.equalsIgnoreCase("headless")) {
 
-				options.addArguments("--headless=new");        // new headless mode (Chrome 109+)
+				options.addArguments("--headless=new"); // new headless mode (Chrome 109+)
 				options.addArguments("--window-size=1920,1080");
 				options.addArguments("--incognito");
 				options.addArguments("--disable-notifications");
@@ -52,59 +52,48 @@ public class Base {
 				options.addArguments("--no-sandbox");
 				options.addArguments("--disable-dev-shm-usage");
 				options.addArguments("--remote-allow-origins=*"); // for Chrome 111+ compatibility
-				options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) " + 
-	                     "AppleWebKit/537.36 (KHTML, like Gecko) " +
-	                     "Chrome/139.0.7258.155 Safari/537.36");
+				options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+						+ "AppleWebKit/537.36 (KHTML, like Gecko) " + "Chrome/139.0.7258.155 Safari/537.36");
 			}
 			WebDriverManager.chromedriver().setup();
 			driver = new ChromeDriver(options);
 			driver.get(prop.getProperty("url"));
 			driver.manage().window().maximize();
-			driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(60) );
+			driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(60));
 
 		}
 	}
 
 	public void enterValue(String value, WebElement element) {
-		try {
-			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
-			   wait.until(webDriver -> ((JavascriptExecutor) webDriver)
-					    .executeScript("return document.readyState").equals("complete"));
-			wait.until(ExpectedConditions.visibilityOf(element));
-			element.clear();
-			element.sendKeys(value);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(120));
+		wait.until(webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState")
+				.equals("complete"));
+		wait.until(ExpectedConditions.visibilityOf(element));
+		element.clear();
+		element.sendKeys(value);
 
 	}
 
 	public void clickElement(WebElement element) {
-		try {
-			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
-			  wait.until(webDriver -> ((JavascriptExecutor) webDriver)
-					    .executeScript("return document.readyState").equals("complete"));
-			wait.until(ExpectedConditions.elementToBeClickable(element));
-			((JavascriptExecutor)driver).executeScript("arguments[0].click();", element);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(120));
+		wait.until(webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState")
+				.equals("complete"));
+		wait.until(ExpectedConditions.elementToBeClickable(element));
+		((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
 
 	}
 
 	public String getText(WebElement element) {
 		String text = "";
-		try {
-			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
-			wait.until(webDriver -> ((JavascriptExecutor) webDriver)
-				    .executeScript("return document.readyState").equals("complete"));
+
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(120));
+		wait.until(webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState")
+				.equals("complete"));
 		wait.until(ExpectedConditions.elementToBeClickable(element));
-			wait.until(ExpectedConditions.elementToBeClickable(element));
-			text = element.getText();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		wait.until(ExpectedConditions.elementToBeClickable(element));
+		text = element.getText();
 		return text;
 
 	}
