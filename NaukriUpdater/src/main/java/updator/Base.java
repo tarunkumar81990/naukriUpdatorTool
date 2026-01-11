@@ -21,115 +21,135 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 
 public class Base {
 
-	WebDriver driver = null;
-	Properties prop;
+    WebDriver driver = null;
+    Properties prop;
 
-	public Base() {
-		try {
-			String configPath = System.getProperty("user.dir") + "/src/main/resources/config.properties";
-			File file = new File(configPath);
-			FileInputStream fis = new FileInputStream(file);
-			prop = new Properties();
-			prop.load(fis);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		initialization(prop.getProperty("browser"));
+    public Base() {
+        try {
+            if (isGitHubRun()) {
+                prop = loadFromGitHubSecrets();
+            } else {
+                prop = loadFromPropertiesFile();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load configuration", e);
+        }
 
-	}
+        initialization(prop.getProperty("browser"));
+    }
 
-	public void initialization(String browser) {
-		if (driver == null) {
-			ChromeOptions options = new ChromeOptions();
-			if (browser.equalsIgnoreCase("chrome")) {
-				options.addArguments("--start-maximized");
-				options.addArguments("--incognito");
-				options.addArguments("--disable-notifications");
+    private boolean isGitHubRun() {
+        return "true".equalsIgnoreCase(System.getenv("GITHUB_ACTIONS"));
+    }
 
-			} else if (browser.equalsIgnoreCase("headless")) {
+    private Properties loadFromPropertiesFile() throws Exception {
+        Properties properties = new Properties();
+        String configPath = System.getProperty("user.dir")
+                + "/src/main/resources/config.properties";
 
-				options.addArguments("--headless=new"); // new headless mode (Chrome 109+)
-				options.addArguments("--window-size=1920,1080");
-				options.addArguments("--incognito");
-				options.addArguments("--disable-notifications");
-				options.addArguments("--disable-gpu");
-				options.addArguments("--no-sandbox");
-				options.addArguments("--disable-dev-shm-usage");
-				options.addArguments("--remote-allow-origins=*"); // for Chrome 111+ compatibility
-				options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-						+ "AppleWebKit/537.36 (KHTML, like Gecko) " + "Chrome/139.0.7258.155 Safari/537.36");
-			}
-			WebDriverManager.chromedriver().setup();
-			driver = new ChromeDriver(options);
-			driver.get(prop.getProperty("url"));
-			driver.manage().window().maximize();
-			driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(60));
+        try (FileInputStream fis = new FileInputStream(new File(configPath))) {
+            properties.load(fis);
+        }
 
-		}
-	}
+        return properties;
+    }
 
-	public void enterValue(String value, WebElement element) {
+    private Properties loadFromGitHubSecrets() {
+        Properties properties = new Properties();
 
-		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(120));
-		wait.until(webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState")
-				.equals("complete"));
-		wait.until(ExpectedConditions.visibilityOf(element));
-		element.clear();
-		takeScreenshot(driver);
-		element.sendKeys(value);
+        properties.setProperty("browser", System.getenv("BROWSER"));
+        properties.setProperty("url", System.getenv("URL"));
+        properties.setProperty("username", System.getenv("APP_USERNAME"));
+        properties.setProperty("password", System.getenv("APP_PASSWORD"));
 
-	}
+        return properties;
+    }
 
-	public void clickElement(WebElement element) {
+    public void initialization(String browser) {
+        if (driver == null) {
+            ChromeOptions options = new ChromeOptions();
 
-		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(120));
-		wait.until(webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState")
-				.equals("complete"));
-		wait.until(ExpectedConditions.elementToBeClickable(element));
-		takeScreenshot(driver);
-		((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+            if (browser.equalsIgnoreCase("chrome")) {
+                options.addArguments("--start-maximized");
+                options.addArguments("--incognito");
+                options.addArguments("--disable-notifications");
 
-	}
+            } else if (browser.equalsIgnoreCase("headless")) {
+                options.addArguments("--headless=new"); 
+                options.addArguments("--window-size=1920,1080");
+                options.addArguments("--incognito");
+                options.addArguments("--disable-notifications");
+                options.addArguments("--disable-gpu");
+                options.addArguments("--no-sandbox");
+                options.addArguments("--disable-dev-shm-usage");
+            }
 
-	public String getText(WebElement element) {
-		String text = "";
+            WebDriverManager.chromedriver().setup();
+            driver = new ChromeDriver(options);
+            driver.get(prop.getProperty("url"));
+            driver.manage().window().maximize();
+            driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(60));
+        }
+    }
 
-		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(120));
-		wait.until(webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState")
-				.equals("complete"));
-		wait.until(ExpectedConditions.elementToBeClickable(element));
-		takeScreenshot(driver);
-		text = element.getText();
-		return text;
+    public void enterValue(String value, WebElement element) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(120));
+        wait.until(webDriver ->
+                ((JavascriptExecutor) webDriver)
+                        .executeScript("return document.readyState")
+                        .equals("complete"));
+        wait.until(ExpectedConditions.visibilityOf(element));
+        element.clear();
+        takeScreenshot(driver);
+        element.sendKeys(value);
+    }
 
-	}
+    public void clickElement(WebElement element) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(120));
+        wait.until(webDriver ->
+                ((JavascriptExecutor) webDriver)
+                        .executeScript("return document.readyState")
+                        .equals("complete"));
+        wait.until(ExpectedConditions.elementToBeClickable(element));
+        takeScreenshot(driver);
+        ((JavascriptExecutor) driver)
+                .executeScript("arguments[0].click();", element);
+    }
 
-	public void scrollToElement(WebElement element) {
-		JavascriptExecutor js = (JavascriptExecutor) driver;
-		js.executeScript("arguments[0].scrollIntoView(true);", element);
+    public String getText(WebElement element) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(120));
+        wait.until(webDriver ->
+                ((JavascriptExecutor) webDriver)
+                        .executeScript("return document.readyState")
+                        .equals("complete"));
+        wait.until(ExpectedConditions.elementToBeClickable(element));
+        takeScreenshot(driver);
+        return element.getText();
+    }
 
-	}
+    public void scrollToElement(WebElement element) {
+        ((JavascriptExecutor) driver)
+                .executeScript("arguments[0].scrollIntoView(true);", element);
+    }
+
     public static String takeScreenshot(WebDriver driver) {
-    	int screenshotCount = 0;
-        String filename = "screenShot" + "_" + System.currentTimeMillis() + "_" + (screenshotCount++) + ".png";
+        String filename = "screenShot_" + System.currentTimeMillis() + ".png";
         File folder = new File("screenshots");
         if (!folder.exists()) folder.mkdirs();
+
         File destFile = new File(folder, filename);
-        
         try {
-            File srcFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+            File srcFile = ((TakesScreenshot) driver)
+                    .getScreenshotAs(OutputType.FILE);
             Files.copy(srcFile.toPath(), destFile.toPath());
-            System.out.println("Screenshot saved: " + destFile.getAbsolutePath());
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         return destFile.getAbsolutePath();
     }
 
-	public void tearDown() {
-		driver.close();
-		driver.quit();
-
-	}
+    public void tearDown() {
+        driver.close();
+        driver.quit();
+    }
 }
